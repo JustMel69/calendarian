@@ -1,0 +1,11 @@
+**TODO:**
+- [ ] Hard coded project
+- [ ] Hard coded calendar view
+- [ ] Very simple event placement (just name and abs day)
+- [ ] Custom week days
+- [ ] Custom months
+- [ ] Multi calendars
+- [ ] Full custom project
+- [ ] Improved events
+- [ ] Time diff calculator
+- [ ] Timeline view
