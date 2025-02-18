@@ -1,16 +1,18 @@
 use egui::ViewportCommand;
 
-use crate::{modals::Modal, project_selection::ProjectSelectionState, status_bar::StatusBar, upstream::{Upstream, UpstreamCmd}};
+use crate::{modals::Modal, project_selection::ProjectSelectionState, status_bar::StatusBar, upstream::{Upstream, UpstreamCmd}, workspace::WorkspaceState};
 
 #[derive(Debug)]
 pub enum AppState {
     ProjectSelection(ProjectSelectionState),
+    Workspace(WorkspaceState),
 }
 
 impl AppState {
-    fn update(&mut self, ctx: &egui::Context, interactable: bool) {
+    fn update(&mut self, ctx: &egui::Context, upstream: &mut Upstream, interactable: bool) {
         match self {
-            AppState::ProjectSelection(x) => x.update(ctx, interactable),
+            AppState::ProjectSelection(x) => x.update(ctx, upstream, interactable),
+            AppState::Workspace(x) => x.update(ctx, interactable),
         }
     }
 }
@@ -40,6 +42,8 @@ impl Application {
         while let Some(cmd) = self.upstream.pop_cmd() {
             match cmd {
                 UpstreamCmd::TryQuit | UpstreamCmd::ForceQuit => ctx.send_viewport_cmd(ViewportCommand::Close),
+                UpstreamCmd::OpenProject(path) => self.state = AppState::Workspace(WorkspaceState::new(path)),
+                UpstreamCmd::CloseProject => self.state = AppState::ProjectSelection(ProjectSelectionState::default()),
             }
         }
     }
@@ -58,9 +62,11 @@ impl eframe::App for Application {
             }
             std::mem::swap(&mut swap, &mut self.modals);
             
-            let mut app_ctx = AppContext { upstream: &mut self.upstream, state: &self.state };
-            self.status_bar.update(ctx, &mut app_ctx, interactable);
-            self.state.update(ctx, interactable);
+            {
+                let mut app_ctx = AppContext { upstream: &mut self.upstream, state: &self.state };
+                self.status_bar.update(ctx, &mut app_ctx, interactable);
+            }
+            self.state.update(ctx, &mut self.upstream, interactable);
         });
 
         self.handle_upstream(ctx);

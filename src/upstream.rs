@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[derive(Debug, Default)]
 pub struct Upstream {
     cmd_queue: Vec<UpstreamCmd>,
@@ -18,4 +20,6 @@ impl Upstream {
 pub enum UpstreamCmd {
     TryQuit,
     ForceQuit,
+    OpenProject(PathBuf),
+    CloseProject,
 }

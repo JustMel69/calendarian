@@ -5,6 +5,8 @@ mod project_selection;
 mod upstream;
 mod modals;
 mod status_bar;
+mod project;
+mod workspace;
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {

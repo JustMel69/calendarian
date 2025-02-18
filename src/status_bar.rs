@@ -23,7 +23,9 @@ impl StatusBar {
         ui.add(egui::Button::new("Open project").shortcut_text("Ctrl+O"));
         ui.add(egui::Button::new("Open recent project"));
         ui.add_enabled(is_project_open, egui::Button::new("Save project").shortcut_text("Ctrl+S"));
-        ui.add_enabled(is_project_open, egui::Button::new("Close project"));
+        if ui.add_enabled(is_project_open, egui::Button::new("Close project")).clicked() {
+            app_ctx.upstream.push_cmd(UpstreamCmd::CloseProject);
+        }
         ui.separator();
         ui.add(egui::Button::new("Preferences"));
         ui.separator();
