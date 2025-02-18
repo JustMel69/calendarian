@@ -19,4 +19,8 @@ impl WorkspaceState {
             ui.heading("yes project selected!!!!!!!");
         }));
     }
+
+    pub fn project(&self) -> &Project {
+        &self.project
+    }
 }

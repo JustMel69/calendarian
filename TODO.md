@@ -1,5 +1,5 @@
 **TODO:**
-- [ ] Hard coded project
+- [x] Hard coded project
 - [ ] Hard coded calendar view
 - [ ] Undo system
 - [ ] Very simple event placement (just name and abs day)

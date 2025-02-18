@@ -21,5 +21,6 @@ pub enum UpstreamCmd {
     TryQuit,
     ForceQuit,
     OpenProject(PathBuf),
-    CloseProject,
+    TryCloseProject,
+    ForceCloseProject,
 }

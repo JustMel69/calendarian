@@ -42,15 +42,22 @@ impl Application {
         while let Some(cmd) = self.upstream.pop_cmd() {
             match cmd {
                 UpstreamCmd::TryQuit | UpstreamCmd::ForceQuit => ctx.send_viewport_cmd(ViewportCommand::Close),
-                UpstreamCmd::OpenProject(path) => self.state = AppState::Workspace(WorkspaceState::new(path)),
-                UpstreamCmd::CloseProject => self.state = AppState::ProjectSelection(ProjectSelectionState::default()),
+                UpstreamCmd::OpenProject(path) => {
+                    let wsp = WorkspaceState::new(path);
+                    ctx.send_viewport_cmd(ViewportCommand::Title(format!("{} - Calendarian", wsp.project().name())));
+                    self.state = AppState::Workspace(wsp);
+                },
+                UpstreamCmd::TryCloseProject | UpstreamCmd::ForceCloseProject => {
+                    ctx.send_viewport_cmd(ViewportCommand::Title("Calendarian".into()));
+                    self.state = AppState::ProjectSelection(ProjectSelectionState::default());
+                },
             }
         }
     }
 }
 
 impl eframe::App for Application {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let mut interactable = true;
 

@@ -24,13 +24,15 @@ impl StatusBar {
         ui.add(egui::Button::new("Open recent project"));
         ui.add_enabled(is_project_open, egui::Button::new("Save project").shortcut_text("Ctrl+S"));
         if ui.add_enabled(is_project_open, egui::Button::new("Close project")).clicked() {
-            app_ctx.upstream.push_cmd(UpstreamCmd::CloseProject);
+            app_ctx.upstream.push_cmd(UpstreamCmd::TryCloseProject);
+            ui.close_menu()
         }
         ui.separator();
         ui.add(egui::Button::new("Preferences"));
         ui.separator();
         if ui.add(egui::Button::new("Exit").shortcut_text("Alt+F4")).clicked() {
             app_ctx.upstream.push_cmd(UpstreamCmd::TryQuit);
+            ui.close_menu()
         }
     }
 }
