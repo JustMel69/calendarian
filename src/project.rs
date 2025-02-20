@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 
+use crate::calendar::Calendar;
+
 #[derive(Debug)]
 pub struct Project {
     path: PathBuf,
     
     name: String,
+    calendar: Calendar,
 }
 
 impl Project {
@@ -12,10 +15,15 @@ impl Project {
         Self {
             path,
             name: "Testing".into(),
+            calendar: Calendar::new(),
         }
     }
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn calendar(&self) -> &Calendar {
+        &self.calendar
     }
 }

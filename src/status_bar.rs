@@ -1,4 +1,4 @@
-use egui::TopBottomPanel;
+use egui::{Button, TopBottomPanel};
 
 use crate::{app::{AppContext, AppState}, upstream::UpstreamCmd};
 
@@ -19,18 +19,18 @@ impl StatusBar {
     fn file_dropdown(&mut self, ui: &mut egui::Ui, app_ctx: &mut AppContext<'_>) {
         let is_project_open = !matches!(app_ctx.state, AppState::ProjectSelection(_));
         
-        ui.add(egui::Button::new("New project"));
-        ui.add(egui::Button::new("Open project").shortcut_text("Ctrl+O"));
-        ui.add(egui::Button::new("Open recent project"));
-        ui.add_enabled(is_project_open, egui::Button::new("Save project").shortcut_text("Ctrl+S"));
-        if ui.add_enabled(is_project_open, egui::Button::new("Close project")).clicked() {
+        ui.add(Button::new("New project"));
+        ui.add(Button::new("Open project").shortcut_text("Ctrl+O"));
+        ui.add(Button::new("Open recent project"));
+        ui.add_enabled(is_project_open, Button::new("Save project").shortcut_text("Ctrl+S"));
+        if ui.add_enabled(is_project_open, Button::new("Close project")).clicked() {
             app_ctx.upstream.push_cmd(UpstreamCmd::TryCloseProject);
             ui.close_menu()
         }
         ui.separator();
-        ui.add(egui::Button::new("Preferences"));
+        ui.add(Button::new("Preferences"));
         ui.separator();
-        if ui.add(egui::Button::new("Exit").shortcut_text("Alt+F4")).clicked() {
+        if ui.add(Button::new("Exit").shortcut_text("Alt+F4")).clicked() {
             app_ctx.upstream.push_cmd(UpstreamCmd::TryQuit);
             ui.close_menu()
         }
