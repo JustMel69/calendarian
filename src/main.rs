@@ -9,6 +9,7 @@ mod status_bar;
 mod project;
 mod workspace;
 mod calendar;
+mod utils;
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
