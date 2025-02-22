@@ -1,22 +1,29 @@
 use std::path::PathBuf;
 
+use calendar_view::CalendarUI;
+use egui::CentralPanel;
+
 use crate::project::Project;
+
+pub mod calendar_view;
 
 #[derive(Debug)]
 pub struct WorkspaceState {
-    project: Project
+    project: Project,
+    calendar: CalendarUI,
 }
 
 impl WorkspaceState {
     pub fn new(project_path: PathBuf) -> Self {
         Self {
             project: Project::new(project_path),
+            calendar: CalendarUI::default(),
         }
     }
     
     pub fn update(&mut self, ctx: &egui::Context, interactable: bool) {
-        egui::CentralPanel::default().show(ctx, |ui| ui.add_enabled_ui(interactable, |ui| {
-            ui.heading("yes project selected!!!!!!!");
+        CentralPanel::default().show(ctx, |ui| ui.add_enabled_ui(interactable, |ui| {
+            self.calendar.update(&mut self.project, ui);
         }));
     }
 
