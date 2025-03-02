@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
-use egui::{Align, Frame, Grid, Label, Response, RichText, Sense, Stroke, UiBuilder};
+use egui::{Align, Frame, Grid, Label, Layout, Response, RichText, ScrollArea, Sense, Stroke, UiBuilder};
 
-use crate::{calendar::{months::Month, weeks::Week}, project::Project, utils::ui_tools::enum_selection};
+use crate::{calendar::{months::Month, weeks::Week, Calendar, MonthUint}, project::Project, utils::ui_tools::enum_selection};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub enum CalendarDisplayType {
@@ -27,59 +27,82 @@ impl Display for CalendarDisplayType {
 #[derive(Debug, Default)]
 pub struct CalendarUI {
     display_type: CalendarDisplayType,
+    month: MonthUint,
 }
 
 impl CalendarUI {
     pub fn update(&mut self, project: &mut Project, ui: &mut egui::Ui) {
         let calendar = project.calendar();
         let week_def = calendar.week_def();
-        let month = &calendar.months()[1];
+        let month = &calendar.months()[self.month as usize];
     
         let col_len = week_def.days().len() as u32;
         let row_len = month.length().div_ceil(col_len);
 
         egui::menu::bar(ui, |ui| {
-            self.display_type = enum_selection(ui, "span-selection", CalendarDisplayType::VALUES, self.display_type);
+            _ = ui.button("Today");
+            if ui.button("<").clicked() && self.month > 0 {
+                self.month -= 1;
+            }
+            if ui.button(">").clicked() && (self.month as usize) < calendar.months().len() - 1 {
+                self.month += 1;
+            }
+
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                self.display_type = enum_selection(ui, "span-selection", CalendarDisplayType::VALUES, self.display_type);
+            });
         });
     
-        calendar_header(ui, col_len, week_def);
-        calendar_body(ui, col_len, row_len, month);
+        self.calendar_header(ui, col_len, week_def);
+        self.calendar_body(ui, col_len, row_len, calendar);
     }
 
-}
-
-fn calendar_body(ui: &mut egui::Ui, col_len: u32, row_len: u32, month: &Month) {
-    let grid = Grid::new("calendar-body")
-        .spacing((0.0, 0.0))
-        .max_col_width(ui.available_width() / col_len as f32)
-        .min_row_height(ui.available_height() / row_len as f32);
+    fn calendar_body(&self, ui: &mut egui::Ui, col_len: u32, row_len: u32, calendar: &Calendar) {
+        fn inner_bordy(ui: &mut egui::Ui, row_width: f32, row_height: f32, row_len: u32, col_len: u32, calendar: &Calendar, month: usize) {
+            let grid = Grid::new("calendar-body")
+                .spacing((0.0, 0.0))
+                .max_col_width(row_width)
+                .min_row_height(row_height);
         
-    grid.show(ui, |ui| {
-        let mut day = 1;
-        for _ in 0..row_len {
-            for _ in 0..col_len {
-                day_ui(ui, day, day > month.length());
-                day += 1;
-            }
-            ui.end_row();
-        };
-    });
-}
-
-fn calendar_header(ui: &mut egui::Ui, col_len: u32, week_def: &Week) {
-    let grid = Grid::new("calendar-header")
-        .spacing((0.0, 0.0))
-        .max_col_width(ui.available_width() / col_len as f32)
-        .min_row_height(30.0);
-        
-    grid.show(ui, |ui| {
-        for day in week_def.days() {
-            ui.vertical_centered(|ui| {
-                ui.strong(day.short());
+            grid.show(ui, |ui| {
+                let mut day = 1;
+                for _ in 0..row_len {
+                    for _ in 0..col_len {
+                        day_ui(ui, day, day > calendar.months()[month].length());
+                        day += 1;
+                    }
+                    ui.end_row();
+                };
             });
-        };
-        ui.end_row();
-    });
+        }
+
+        let row_width = ui.available_width() / col_len as f32;
+        let row_height = ui.available_height() / row_len as f32;
+
+        if row_height < row_width * 0.5 { // yes scroll
+            ScrollArea::vertical().show(ui, |ui|
+                inner_bordy(ui, row_width, row_width * 0.5, row_len, col_len, calendar, self.month as usize)
+            );
+        } else { // no scroll
+            inner_bordy(ui, row_width, row_height, row_len, col_len, calendar, self.month as usize);
+        }
+    }
+
+    fn calendar_header(&self, ui: &mut egui::Ui, col_len: u32, week_def: &Week) {
+        let grid = Grid::new("calendar-header")
+            .spacing((0.0, 0.0))
+            .max_col_width(ui.available_width() / col_len as f32)
+            .min_row_height(30.0);
+        
+        grid.show(ui, |ui| {
+            for day in week_def.days() {
+                ui.vertical_centered(|ui| {
+                    ui.strong(day.short());
+                });
+            };
+            ui.end_row();
+        });
+    }
 }
 
 fn day_ui(ui: &mut egui::Ui, number: u32, dimmed: bool) -> Response {
