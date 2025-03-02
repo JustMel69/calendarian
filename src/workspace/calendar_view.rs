@@ -58,7 +58,7 @@ impl CalendarUI {
     }
 
     fn calendar_body(&self, ui: &mut egui::Ui, col_len: u32, row_len: u32, calendar: &Calendar) {
-        fn inner_bordy(ui: &mut egui::Ui, row_width: f32, row_height: f32, row_len: u32, col_len: u32, calendar: &Calendar, month: usize) {
+        fn inner_body(ui: &mut egui::Ui, row_width: f32, row_height: f32, row_len: u32, col_len: u32, calendar: &Calendar, month: usize) {
             let grid = Grid::new("calendar-body")
                 .spacing((0.0, 0.0))
                 .max_col_width(row_width)
@@ -81,10 +81,10 @@ impl CalendarUI {
 
         if row_height < row_width * 0.5 { // yes scroll
             ScrollArea::vertical().show(ui, |ui|
-                inner_bordy(ui, row_width, row_width * 0.5, row_len, col_len, calendar, self.month as usize)
+                inner_body(ui, row_width, row_width * 0.5, row_len, col_len, calendar, self.month as usize)
             );
         } else { // no scroll
-            inner_bordy(ui, row_width, row_height, row_len, col_len, calendar, self.month as usize);
+            inner_body(ui, row_width, row_height, row_len, col_len, calendar, self.month as usize);
         }
     }
 
