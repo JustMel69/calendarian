@@ -1,8 +1,10 @@
+use day::DayVec;
 use months::Month;
 use weeks::Week;
 
 pub mod weeks;
 pub mod months;
+pub mod day;
 
 pub type GlobalDayInt = i64;
 pub type YearInt = i32;
@@ -48,5 +50,48 @@ impl Calendar {
         assert!(year == 0 && month == 0); // for simplicity for now
 
         return (self.start_offset as usize % self.week_def.days().len()) as u32;
+    }
+
+    pub fn global_to_local(&self, global: GlobalDayInt) -> DayVec {
+        let relative = global - self.start_date;
+        let year_len = self.months.iter().map(|x| x.length()).sum::<u32>() as GlobalDayInt;
+
+        let year = relative / year_len; // TODO: TAKE INTO ACCOUNT LEAP DAYS AND NON-ZERO-YEAR CALENDARS
+
+        // Extract month and day
+        let mut day = relative - year * year_len;
+        let mut month = 0;
+        
+        while month < self.months.len() {
+            let month_len = self.length_of_month(year as YearInt, month as MonthUint);
+            
+            if day < month_len as GlobalDayInt {
+                break;
+            }
+            day -= month_len as GlobalDayInt;
+            month += 1;
+        }
+
+        assert!(month < self.months.len(), "HOW DID WE EVEN GET HERE");
+        return DayVec { year: year as YearInt, month: month as MonthUint, day: day as DayUint };
+    }
+
+    pub fn local_to_global(&self, local: DayVec) -> GlobalDayInt {
+        // Calculate day offset from start of year
+        let mut day_offset = 0;
+        for i in 0..local.month {
+            day_offset += self.length_of_month(local.year, i) as GlobalDayInt;
+        }
+
+        let year_len = self.months.iter().map(|x| x.length()).sum::<u32>() as GlobalDayInt;
+
+        // TODO: TAKE INTO ACCOUNT LEAP DAYS AND NON-ZERO-YEAR CALENDARS
+        let days_since_ref = year_len * local.year as GlobalDayInt;
+        return days_since_ref + day_offset + self.start_date;
+    }
+
+    pub fn length_of_month(&self, year: YearInt, month: MonthUint) -> u32 {
+        // TODO: ACCOUNT FOR LEAP DAYS
+        return self.months[month as usize].length();
     }
 }
