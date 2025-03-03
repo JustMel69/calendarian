@@ -35,9 +35,11 @@ impl CalendarUI {
         let calendar = project.calendar();
         let week_def = calendar.week_def();
         let month = &calendar.months()[self.month as usize];
+
+        let starting_weekday = calendar.starting_weekday_of_month(0, self.month);
     
         let col_len = week_def.days().len() as u32;
-        let row_len = month.length().div_ceil(col_len);
+        let row_len = (month.length() + starting_weekday).div_ceil(col_len);
 
         egui::menu::bar(ui, |ui| {
             _ = ui.button("Today");
@@ -54,11 +56,11 @@ impl CalendarUI {
         });
     
         self.calendar_header(ui, col_len, week_def);
-        self.calendar_body(ui, col_len, row_len, calendar);
+        self.calendar_body(ui, col_len, row_len, starting_weekday, calendar);
     }
 
-    fn calendar_body(&self, ui: &mut egui::Ui, col_len: u32, row_len: u32, calendar: &Calendar) {
-        fn inner_body(ui: &mut egui::Ui, row_width: f32, row_height: f32, row_len: u32, col_len: u32, calendar: &Calendar, month: usize) {
+    fn calendar_body(&self, ui: &mut egui::Ui, col_len: u32, row_len: u32, starting_weekday: u32, calendar: &Calendar) {
+        fn inner_body(ui: &mut egui::Ui, row_width: f32, row_height: f32, row_len: u32, col_len: u32, starting_weekday: u32, calendar: &Calendar, month: usize) {
             let grid = Grid::new("calendar-body")
                 .spacing((0.0, 0.0))
                 .max_col_width(row_width)
@@ -68,7 +70,7 @@ impl CalendarUI {
                 let mut day = 1;
                 for _ in 0..row_len {
                     for _ in 0..col_len {
-                        day_ui(ui, day, day > calendar.months()[month].length());
+                        day_ui(ui, day, day > calendar.months()[month].length() + starting_weekday || day <= starting_weekday);
                         day += 1;
                     }
                     ui.end_row();
@@ -81,10 +83,10 @@ impl CalendarUI {
 
         if row_height < row_width * 0.5 { // yes scroll
             ScrollArea::vertical().show(ui, |ui|
-                inner_body(ui, row_width, row_width * 0.5, row_len, col_len, calendar, self.month as usize)
+                inner_body(ui, row_width, row_width * 0.5, row_len, col_len, starting_weekday, calendar, self.month as usize)
             );
         } else { // no scroll
-            inner_body(ui, row_width, row_height, row_len, col_len, calendar, self.month as usize);
+            inner_body(ui, row_width, row_height, row_len, col_len, starting_weekday, calendar, self.month as usize);
         }
     }
 
